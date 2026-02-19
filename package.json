@@ -1,0 +1,32 @@
+{
+  "name": "react-concepts",
+  "version": "1.0.0",
+  "description": "React Concepts",
+  "keywords": [
+    "react"
+  ],
+  "homepage": "https://github.com/palakbansal3233/react-concepts#readme",
+  "bugs": {
+    "url": "https://github.com/palakbansal3233/react-concepts/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palakbansal3233/react-concepts.git"
+  },
+  "license": "ISC",
+  "author": "Palak Bansal",
+  "type": "commonjs",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "parcel": "^2.16.4"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "browserslist": [
+    "last 2 versions"
+  ]
+}
