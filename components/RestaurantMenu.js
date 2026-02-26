@@ -17,6 +17,15 @@ const getImageUrl = (imageId) => {
 const RestaurantMenu = () => {
 	const { resId } = useParams();
 	const [resInfo, setResInfo] = useState(null);
+	const [showVegOnly, setShowVegOnly] = useState(false);
+	const [expandedSections, setExpandedSections] = useState({ 0: true });
+
+	const toggleSection = (index) => {
+		setExpandedSections(prev => ({
+			...prev,
+			[index]: !prev[index]
+		}));
+	};
 
 	useEffect(() => {
 		if (resId) fetchMenu();
@@ -47,7 +56,6 @@ const RestaurantMenu = () => {
 
 	const { name, cuisines, avgRating, sla, areaName } = infoCard;
 
-	// Parse menu: each card has card.card.title and card.card.itemCards
 	const menuSections = regularCards
 		.filter((entry) => entry?.card?.card?.title && entry?.card?.card?.itemCards?.length > 0)
 		.map((entry) => ({
@@ -60,6 +68,7 @@ const RestaurantMenu = () => {
 					description: info.description ?? "",
 					price: info.price ?? info.defaultPrice,
 					imageId: info.imageId,
+					isVeg: info.itemAttribute?.vegClassifier === "VEG" || info.isVeg === 1,
 				};
 			}),
 		}));
@@ -91,39 +100,62 @@ const RestaurantMenu = () => {
 			</div>
 
 			<div className="menu-content">
-				<h2 className="menu-content-title">Menu</h2>
+				<div className="menu-header-top">
+					<h2 className="menu-content-title">Menu</h2>
+					<div className="veg-toggle-container">
+						<span className="veg-toggle-label" onClick={() => setShowVegOnly(!showVegOnly)}>Veg Only</span>
+						<div
+							className={`veg-toggle-switch ${showVegOnly ? 'active' : ''}`}
+							onClick={() => setShowVegOnly(!showVegOnly)}
+						></div>
+					</div>
+				</div>
 				{menuSections.length === 0 ? (
 					<p className="menu-empty">No menu available.</p>
 				) : (
-					menuSections.map((section) => (
-						<section key={section.title} className="menu-section">
-							<h3 className="menu-section-title">{section.title}</h3>
-							<ul className="menu-item-list">
-								{section.items.map((item) => {
-									const imageUrl = getImageUrl(item.imageId);
-									return (
-										<li key={item.id || item.name} className="menu-item">
-											{imageUrl && (
-												<div className="menu-item-img-wrap">
-													<img src={imageUrl} alt={item.name} className="menu-item-img" />
+					menuSections.map((section, index) => {
+						const filteredItems = showVegOnly ? section.items.filter(item => item.isVeg) : section.items;
+						if (filteredItems.length === 0 && showVegOnly) return null;
+
+						const isExpanded = !!expandedSections[index];
+						return (
+							<section key={section.title} className={`menu-section ${!isExpanded ? 'collapsed' : ''}`}>
+								<div className="menu-section-header" onClick={() => toggleSection(index)}>
+									<h3 className="menu-section-title">{section.title} ({filteredItems.length})</h3>
+									<span className="accordion-icon">▼</span>
+								</div>
+								<ul className="menu-item-list">
+									{filteredItems.map((item) => {
+										const imageUrl = getImageUrl(item.imageId);
+										return (
+											<li key={item.id || item.name} className="menu-item">
+												<div className="menu-item-info">
+													{item.isVeg ? (
+														<span className="veg-icon"></span>
+													) : (
+														<span className="non-veg-icon"></span>
+													)}
+													<span className="menu-item-name">{item.name}</span>
+													<span className="menu-item-price">{formatPrice(item.price)}</span>
+													{item.description ? (
+														<p className="menu-item-desc">{item.description}</p>
+													) : null}
 												</div>
-											)}
-											<div className="menu-item-info">
-												<span className="menu-item-name">{item.name}</span>
-												{item.description ? (
-													<p className="menu-item-desc">{item.description}</p>
-												) : null}
-											</div>
-											<div className="menu-item-price-wrap">
-												<span className="menu-item-price">{formatPrice(item.price)}</span>
-												<button type="button" className="menu-item-add-btn">Add</button>
-											</div>
-										</li>
-									);
-								})}
-							</ul>
-						</section>
-					))
+												{imageUrl ? (
+													<div className="menu-item-img-wrap">
+														<img src={imageUrl} alt={item.name} className="menu-item-img" />
+														<button type="button" className="menu-item-add-btn">Add</button>
+													</div>
+												) : (
+													<button type="button" className="menu-item-no-img-add">Add</button>
+												)}
+											</li>
+										);
+									})}
+								</ul>
+							</section>
+						);
+					})
 				)}
 			</div>
 		</main>
